@@ -57,3 +57,18 @@ html,body{margin:0;background:#080f22;color:#eff3ff;font:15px/1.6 system-ui,sans
 #campus-signature-pair .account-page .nav a{text-decoration:none}
 #campus-signature-pair .account-page .login-copy{align-self:start;padding-top:65px}
 @media(max-width:760px){#campus-signature-pair .account-page .login{min-height:1050px}#campus-signature-pair .account-page .login-copy{padding-top:0}#campus-signature-pair .account-page .login-frame{margin-top:250px}}
+/* Exam planner and project evidence */
+#hologram-collexion-demo .study-field,#hologram-collexion-demo .checkpoint label{display:grid;gap:8px;margin:12px 0}
+#hologram-collexion-demo .study-field input,#hologram-collexion-demo .checkpoint input:not([type=checkbox]),#hologram-collexion-demo .checkpoint textarea,#hologram-collexion-demo .study-subject input,#hologram-collexion-demo #study-date-text,#hologram-collexion-demo #study-question{width:100%;box-sizing:border-box}
+#hologram-collexion-demo .study-subject{border:1px solid #64748b55;border-radius:18px;padding:20px;margin:20px 0;min-width:0}
+#hologram-collexion-demo .study-unit{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;border-bottom:1px solid #64748b44;padding:12px 0}
+#hologram-collexion-demo .study-unit>*{min-width:0}#hologram-collexion-demo .study-day{margin-top:18px}
+#hologram-collexion-demo .study-task{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid #64748b33;align-items:flex-start;line-height:1.6}
+#hologram-collexion-demo .study-task input{width:20px;height:20px;flex:none;margin-top:3px}#hologram-collexion-demo .study-task small{display:block;opacity:.75}
+#hologram-collexion-demo .study-resources,#hologram-collexion-demo .study-question{padding:22px;border:1px solid #64748b55;border-radius:16px;margin:16px 0;overflow-wrap:anywhere}
+#hologram-collexion-demo .checkpoint{padding:18px 0;border-block:1px solid #64748b55;margin:18px 0}#hologram-collexion-demo .checkpoint summary{cursor:pointer;font-weight:600}#hologram-collexion-demo .checkpoint .career-complete{display:flex}
+@media(max-width:760px){#hologram-collexion-demo .study-unit{grid-template-columns:1fr 1fr}#hologram-collexion-demo .study-unit>.study-field:first-child{grid-column:1/-1}#hologram-collexion-demo .study-subject{padding:15px}}
+
+#hologram-collexion-demo .study-field input,#hologram-collexion-demo .study-unit select,#hologram-collexion-demo [data-study-field="language"],#hologram-collexion-demo #study-paper-subject,#hologram-collexion-demo #study-paper-unit,#hologram-collexion-demo #study-date-text,#hologram-collexion-demo #study-question,#hologram-collexion-demo .checkpoint input:not([type=checkbox]),#hologram-collexion-demo .checkpoint textarea{min-height:44px;padding:12px;border:1px solid #516c87;border-radius:8px;background:#0b172a;color:#f1f5ff;font-size:16px;max-width:100%}
+#hologram-collexion-demo .study-practice{display:block;margin-top:12px;padding:12px;border-left:2px solid #a7eced;background:#a7eced0a;white-space:pre-wrap}
+#hologram-collexion-demo .study-task span{min-width:0;overflow-wrap:anywhere}
