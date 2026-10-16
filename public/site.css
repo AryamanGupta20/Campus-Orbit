@@ -72,3 +72,15 @@ html,body{margin:0;background:#080f22;color:#eff3ff;font:15px/1.6 system-ui,sans
 #hologram-collexion-demo .study-field input,#hologram-collexion-demo .study-unit select,#hologram-collexion-demo [data-study-field="language"],#hologram-collexion-demo #study-paper-subject,#hologram-collexion-demo #study-paper-unit,#hologram-collexion-demo #study-date-text,#hologram-collexion-demo #study-question,#hologram-collexion-demo .checkpoint input:not([type=checkbox]),#hologram-collexion-demo .checkpoint textarea{min-height:44px;padding:12px;border:1px solid #516c87;border-radius:8px;background:#0b172a;color:#f1f5ff;font-size:16px;max-width:100%}
 #hologram-collexion-demo .study-practice{display:block;margin-top:12px;padding:12px;border-left:2px solid #a7eced;background:#a7eced0a;white-space:pre-wrap}
 #hologram-collexion-demo .study-task span{min-width:0;overflow-wrap:anywhere}
+
+/* Personal next steps, reports and compact phone forms. */
+#hologram-collexion-demo .continue-panel{margin:28px 0 45px}
+#hologram-collexion-demo .continue-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+#hologram-collexion-demo .continue-grid .c-card{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+#hologram-collexion-demo .continue-grid .c-btn{margin-top:auto}
+#hologram-collexion-demo .exam-reminders{padding:24px;margin-top:18px;border:1px solid #75d9d855;border-radius:18px;background:#75d9d808}
+#hologram-collexion-demo .report-panel{margin-top:32px;overflow-wrap:anywhere}
+#hologram-collexion-demo .report-panel summary{cursor:pointer;font-weight:600;min-height:44px;padding:10px 0}
+#hologram-collexion-demo .report-panel input,#hologram-collexion-demo .report-panel textarea,#hologram-collexion-demo .report-panel select{width:100%;max-width:100%;min-height:44px;font-size:16px}
+.account-bar>span{overflow-wrap:anywhere;min-width:0}#save-status{max-width:480px;overflow-wrap:anywhere}
+@media(max-width:760px){#hologram-collexion-demo .continue-grid{grid-template-columns:1fr}#hologram-collexion-demo .c-tabs{display:flex;flex-wrap:wrap;gap:8px}#hologram-collexion-demo .c-tabs button{white-space:normal;min-height:44px}#hologram-collexion-demo .checkpoint input:not([type=checkbox]),#hologram-collexion-demo .checkpoint textarea{min-width:0}#hologram-collexion-demo .c-btn{max-width:100%;white-space:normal;min-height:44px}.account-bar{padding:12px 16px}.account-bar>div{width:100%}.account-bar button{min-height:44px}#save-status{flex-basis:100%}#hologram-collexion-demo .study-unit{grid-template-columns:1fr}#hologram-collexion-demo .study-unit>.study-field:first-child{grid-column:auto}}
