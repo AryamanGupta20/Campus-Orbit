@@ -1,3 +1,5 @@
+> Superseded: interview/round practice was removed at the user's request. Old private answers remain stored; question UI, navigation, and scheduled interview tasks are removed.
+
 # Placement Round Practice
 
 Placement Desk no longer links to Career Roadmaps. The old career continuation card is removed. Existing stored career data is kept; College Courses degree roadmaps are unchanged.

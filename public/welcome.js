@@ -7,7 +7,7 @@ const configs=[
 ['observatory','Midnight Observatory — Signature','YOUR FUTURE IS STILL WIDE OPEN','Find your direction.<br>Build your future.','Explore tech roles, learn with a clear plan, and turn your ideas into work you can show.','Find your direction','Step into<br>your next chapter.','A clear path for your learning, ideas, and growth.','portal']
 ];
 const blocks=['College Courses','Social & Confidence','Placement Desk','Student Money','Résumé Builder'];
-const details=['Choose your tech degree, follow a roadmap, find subject playlists, explore roles, and build a private work portfolio.','Search student concerns and find selected videos by problem and language.','Choose a tech role, check skill gaps, practise interviews, and track applications.','Track expenses, plan savings, and split bills.','Create a private résumé with your education, experience, skills, and project links.'];
+const details=['Choose your tech degree, follow a roadmap, find subject playlists, explore roles, and build a private work portfolio.','Search student concerns and find selected videos by problem and language.','Choose a tech role, check skill gaps, build your skills, and track applications.','Track expenses, plan savings, and split bills.','Create a private résumé with your education, experience, skills, and project links.'];
 const longWelcome=`<div class="cc-long">
 <div class="cc-ribbon" aria-label="Learn, build, grow, repeat"><span>LEARN WITH DIRECTION</span><b aria-hidden="true">✦</b><span>BUILD SOMETHING REAL</span><b aria-hidden="true">✦</b><span>GROW AT YOUR PACE</span></div>
 <section class="cc-section cc-purpose" id="campus-purpose" aria-labelledby="cc-purpose-title">
