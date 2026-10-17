@@ -1,0 +1,20 @@
+const roles=['frontend','backend','fullstack','python','java','analyst','scientist','ml','ai','data-engineer','devops','cloud','cyber','android','qa'];
+const reject=m=>{throw Object.assign(new Error(m),{status:400});};
+const str=(v,max=1500)=>{if(typeof v!=='string'||v.length>max)reject('Placement field is too long or invalid.');return v.trim();};
+const list=(v,max)=>{if(!Array.isArray(v)||v.length>max)reject('Too many placement records.');return v;};
+const dict=v=>{if(!v||typeof v!=='object'||Array.isArray(v))reject('Invalid placement record.');return v;};
+const choose=(v,values)=>{if(!values.includes(v))reject('Invalid placement option.');return v;};
+const id=v=>{const s=str(v,100);if(!/^[a-zA-Z0-9:-]+$/.test(s))reject('Invalid placement identifier.');return s;};
+const date=v=>{const s=str(v||'',10);if(s&&(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s+'T12:00:00Z'))||new Date(s+'T12:00:00Z').toISOString().slice(0,10)!==s))reject('Enter a valid date.');return s;};
+const hours=(v,max)=>{if(!Number.isFinite(v)||v<.5||v>max||!Number.isInteger(v*2))reject('Use study hours in half-hour steps.');return v;};
+const url=v=>{const s=str(v||'',1500);if(!s)return '';try{const u=new URL(s);if(u.protocol!=='https:'||u.username||u.password)throw Error();return u.href;}catch{reject('Use an HTTPS source link.');}};
+export function cleanPlacement(value){const p=dict(value),safe={role:choose(p.role||'',['',...roles]),language:choose(p.language||'English',['English','Hinglish']),preference:choose(p.preference||'Both',['Both','Fresher','Internship']),mode:choose(p.mode||'Checklist',['Checklist','Schedule']),hours:hours(p.hours??1,8),deadline:date(p.deadline),jd:str(p.jd||'',6000),skills:{},custom:[],done:[],answers:{},apps:[]};
+const entries=(v,max)=>list(Object.entries(dict(v||{})),max);
+for(const [key,v]of entries(p.skills,300)){dict(v);safe.skills[id(key)]={status:choose(v.status,['Not learned','Practice','Ready']),hours:hours(v.hours,12),evidence:str(v.evidence||'',1500)};}
+safe.custom=list(p.custom||[],30).map(v=>({id:id(v.id),label:str(v.label,100),role:choose(v.role,roles)}));if(new Set(safe.custom.map(x=>x.role+':'+x.id)).size!==safe.custom.length)reject('Duplicate placement skill.');
+safe.done=[...new Set(list(p.done||[],3000).map(id))];
+for(const [key,v]of entries(p.answers,160)){dict(v);safe.answers[id(key)]={text:str(v.text||'',1500),revealed:v.revealed===true,checks:[...new Set(list(v.checks||[],3).map(n=>choose(n,[0,1,2])))]};}
+safe.apps=list(p.apps||[],30).map(v=>({id:id(v.id),source:str(v.source||'',100),company:str(v.company||'',120),title:str(v.title||'',120),url:str(v.url||'',1500),status:choose(v.status,['Saved','Applied','Assessment','Interview','Offer','Rejected','Withdrawn']),deadline:date(v.deadline),nextDate:date(v.nextDate),notes:str(v.notes||'',1500)}));if(new Set(safe.apps.map(a=>a.id)).size!==safe.apps.length)reject('Duplicate application.');return safe;
+}
+export function cleanOpportunity(value,kind,now=new Date().toISOString().slice(0,10)){const v=dict(value);choose(kind,['company','job']);const safe={company:str(v.company,120),title:str(v.title||'',120),url:url(v.url),roles:[...new Set(list(v.roles,15).map(r=>choose(r,roles)))],skills:[...new Set(list(v.skills||[],30).map(id))],preference:choose(v.preference,['Both','Fresher','Internship']),status:choose(v.status,['Draft','Ready','Closed']),checked:date(v.checked),expires:date(v.expires),deadline:date(v.deadline),description:str(v.description||'',2000)};
+if(!safe.company||!safe.url||!safe.roles.length)reject('Add a company, HTTPS source and at least one role.');if(kind==='job'&&!safe.title)reject('Add the job title.');if(safe.checked&&safe.checked>now)reject('Checked date cannot be in the future.');if(safe.status==='Ready'){if(!safe.checked||v.confirmed!==true)reject('Check the official source and confirm your review before publishing.');if(kind==='job'&&(safe.expires<now||!safe.expires||Date.parse(now)-Date.parse(safe.checked)>14*86400000))reject('Published jobs need a check within 14 days and a current expiry date.');}return safe;}

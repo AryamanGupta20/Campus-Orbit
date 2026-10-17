@@ -4,16 +4,20 @@ class El{constructor(){this.handlers={};this.value='';this.dataset={};this.attrs
 const root=new El,screen=new El;nodes.set('admin-screen',screen);nodes.set('admin-nav',new El);nodes.set('admin-feedback',new El);
 
 (async()=>{
-const Campus={catalog:[],catalogVideos:[],fatal(e){throw e},async api(path,method,data){if(path.includes('/logins'))return{logins:[]};if(path==='/admin/content')return{id:data.id||'new-course'};return{};}};
-const ctx={document:{getElementById:()=>root},window:{addEventListener(){}},Campus,URL,console};vm.createContext(ctx);vm.runInContext(fs.readFileSync(__dirname+'/../public/admin.js','utf8'),ctx);
+const placementWrites=[];const Campus={catalog:[],catalogVideos:[],fatal(e){throw e},async api(path,method,data){if(path.includes('/logins'))return{logins:[]};if(path==='/admin/placement'){placementWrites.push(data);return{id:data.id||'new-job'};}if(path==='/admin/content')return{id:data.id||'new-course'};return{};}};
+const ctx={document:{getElementById:()=>root},window:{addEventListener(){}},Campus,URL,console};vm.createContext(ctx);for(const f of ['career-data.js','placement-admin.js','admin.js'])vm.runInContext(fs.readFileSync(__dirname+'/../public/'+f,'utf8'),ctx);
 await ctx.window.mountAdmin({students:[],requests:[],content:{items:[],settings:{}}});
 async function page(value){await root.handlers.click({target:{closest:s=>s==='[data-page]'?{dataset:{page:value}}:null}});}
 async function click(action,value){await root.handlers.click({target:{closest:s=>s==='[data-action]'?{dataset:{action,value}}:null}});}
-for(const p of ['overview','students','requests','courses','videos','settings']){await page(p);assert(screen.innerHTML.length>100);}
+for(const p of ['overview','students','requests','courses','videos','placement','settings']){await page(p);assert(screen.innerHTML.length>100);}
 await page('courses');await click('edit-content','new');
 const put=(id,value)=>{assert(nodes.has(id),id);nodes.get(id).value=value;};
 put('content-title','Test course');put('content-roadmap','Learn basics\nBuild a project');put('content-subject','Programming');put('content-url','https://www.youtube.com/playlist?list=example');
 await root.handlers.submit({preventDefault(){},target:{id:'content-form'}});assert(screen.innerHTML.includes('Test course'));
+await page('placement');await click('pa-new','job');assert(screen.innerHTML.includes('Employer application deadline'));
+for(const [key,value]of Object.entries({company:'Example Employer',title:'Frontend Intern',url:'https://example.test/job',checked:'2026-10-17',expires:'2026-10-30',deadline:'2026-10-25',description:'Test listing',status:'Ready',preference:'Internship'}))put('pa-'+key,value);
+nodes.get('pa-confirmed').checked=true;screen.querySelectorAll=s=>s.includes('role')?[{dataset:{paRole:'frontend'}}]:[{dataset:{paSkill:'web'}}];
+await root.handlers.submit({preventDefault(){},target:{id:'placement-content-form',querySelector(){return{disabled:false}}}});assert(screen.innerHTML.includes('Example Employer'));assert.equal(placementWrites[0].data.deadline,'2026-10-25');assert.equal(placementWrites[0].data.confirmed,true);assert.equal(placementWrites[0].data.roles[0],'frontend');await click('pa-edit','new-job');assert(screen.innerHTML.includes('Example Employer'));await click('pa-cancel');
 await ctx.window.mountAdmin({students:[{id:'u1',name:'Student',email:'student@example.test',created_at:'2026-10-05',login_count:2}],requests:[{id:'r1',user_id:'u1',category:'Project help',description:'Help with my project',status:'New',messages:[],files:[],created_at:'2026-10-05'}],content:{items:[],settings:{}}});
 await page('students');await click('student','u1');assert(screen.innerHTML.includes('student@example.test'));assert(screen.innerHTML.includes('Passwords are never visible'));
 await click('request','r1');put('reply-text','Please describe what you tried.');await root.handlers.submit({preventDefault(){},target:{id:'reply-form'}});assert(screen.innerHTML.includes('Please describe what you tried.'));

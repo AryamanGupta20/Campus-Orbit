@@ -9,7 +9,7 @@ let code=fs.readFileSync(__dirname+'/../public/student.js','utf8');
 code=code.replace('render();\nreturn Campus.controller;', 'globalThis.testApi={state,courses,resources,playlistRows,stages,render,careerTools};render();return Campus.controller;');
 const writes=[];let version=0,failSave=false;const statuses=[];
 const Campus={status(...args){statuses.push(args)},fatal(e){throw e},async api(path,method,data){writes.push({path,method,data});if(path==='/state'&&failSave)throw Error('Connection lost');if(path==='/requests')return method==='POST'?{id:'report-1'}:{requests:[]};if(path==='/state')return {version:++version};if(path==='/portfolio/share')return{token:data.enabled?'test-token':null};throw Error('Unexpected route '+path);}};
-const context={document:{getElementById:()=>root},window:{addEventListener(){},removeEventListener(){},print(){}},Campus,location:{origin:"https://example.test"},Intl,console,Date,Math,URL,FormData,setTimeout,clearTimeout};vm.createContext(context);for(const file of ['career-data.js','career-tools.js','study-tools.js'])vm.runInContext(fs.readFileSync(__dirname+'/../public/'+file,'utf8'),context);vm.runInContext(code,context);
+const context={document:{getElementById:()=>root},window:{addEventListener(){},removeEventListener(){},print(){}},Campus,location:{origin:"https://example.test"},Intl,console,Date,Math,URL,FormData,setTimeout,clearTimeout};vm.createContext(context);for(const file of ['career-data.js','career-tools.js','study-tools.js','placement-data.js','placement.js'])vm.runInContext(fs.readFileSync(__dirname+'/../public/'+file,'utf8'),context);vm.runInContext(code,context);
 const ctl=await context.window.mountStudent({data:{},user:{name:'Test Student',email:'test@example.test'},version:0,requests:[],content:{items:[],settings:{channel:'https://whatsapp.com/channel/test'}}});
 const t=context.testApi;assert.equal(t.state.course,null);
 assert(screen.innerHTML.includes('Welcome,'));assert(screen.innerHTML.includes('Test Student'));
@@ -93,6 +93,9 @@ elements.get('hologram-report-type').value='Broken playlist';elements.get('holog
 for(const handler of report.handlers.submit)await handler({preventDefault(){},target:report});
 const sent=writes.findLast(w=>w.path==='/requests'&&w.method==='POST');assert(sent.data instanceof FormData);assert(sent.data.get('description').includes('BCA syllabus'));assert(sent.data.get('category').includes('Broken playlist'));assert(elements.get('hologram-report-status').textContent.includes('Report sent'));await action('report-history');assert.equal(t.state.section,'service');
 await ctl.flush();failSave=true;await action('course','mca');await assert.rejects(()=>ctl.flush(),/Connection lost/);assert(statuses.some(s=>s[2]===true));failSave=false;await ctl.flush();assert.equal(statuses.at(-1)[0],'All changes saved');assert.equal(writes.findLast(w=>w.path==='/state').data.data.course,'mca');
+await action('nav','roadmaps');assert(screen.innerHTML.includes('Open Placement Desk'));await action('pd-open');assert.equal(t.state.section,'placement');assert(screen.innerHTML.includes('Choose your direction first'));
+for(const handler of root.handlers.change)handler({type:'change',target:{dataset:{pd:'role'},value:'frontend'}});
+assert(screen.innerHTML.includes('Web foundations'));await action('pd-tab','interviews');assert(screen.innerHTML.includes('How would you make a form usable'));await ctl.flush();assert.equal(writes.findLast(w=>w.path==='/state').data.data.placement.role,'frontend');await action('pd-back');assert.equal(t.state.section,'roadmaps');
 await action('nav','business');
 const briefForm=elements.get('hologram-find-team-form');
 assert(briefForm,'Idea brief form must use the real dashboard ID');
