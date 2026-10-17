@@ -95,7 +95,7 @@ const sent=writes.findLast(w=>w.path==='/requests'&&w.method==='POST');assert(se
 await ctl.flush();failSave=true;await action('course','mca');await assert.rejects(()=>ctl.flush(),/Connection lost/);assert(statuses.some(s=>s[2]===true));failSave=false;await ctl.flush();assert.equal(statuses.at(-1)[0],'All changes saved');assert.equal(writes.findLast(w=>w.path==='/state').data.data.course,'mca');
 await action('nav','roadmaps');assert(screen.innerHTML.includes('Open Placement Desk'));await action('pd-open');assert.equal(t.state.section,'placement');assert(screen.innerHTML.includes('Choose your direction first'));
 for(const handler of root.handlers.change)handler({type:'change',target:{dataset:{pd:'role'},value:'frontend'}});
-assert(screen.innerHTML.includes('Web foundations'));await action('pd-tab','interviews');assert(screen.innerHTML.includes('How would you make a form usable'));await ctl.flush();assert.equal(writes.findLast(w=>w.path==='/state').data.data.placement.role,'frontend');await action('pd-back');assert.equal(t.state.section,'roadmaps');
+assert(screen.innerHTML.includes('Web foundations'));await action('pd-tab','interviews');assert(screen.innerHTML.includes('How would you make a form usable'));await ctl.flush();assert.equal(writes.findLast(w=>w.path==='/state').data.data.placement.role,'frontend');await action('pd-round','project');assert(screen.innerHTML.includes('Project discussion'));assert(!screen.innerHTML.includes('Explore career roadmaps'));await action('pd-back');assert.equal(t.state.section,'home');assert(!screen.innerHTML.includes('CAREER ROADMAP'));
 await action('nav','business');
 const briefForm=elements.get('hologram-find-team-form');
 assert(briefForm,'Idea brief form must use the real dashboard ID');
