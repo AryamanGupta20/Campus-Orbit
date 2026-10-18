@@ -1,4 +1,4 @@
-# Collexion Campus
+# Campus Orbit
 
 A semester project for students moving into college and tech degrees.
 
