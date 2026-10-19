@@ -47,3 +47,5 @@
 #orbit-tools #hologram-collexion-demo .c-small,#orbit-tools #hologram-collexion-demo .c-btn,#orbit-tools #hologram-collexion-demo label,#orbit-tools #hologram-collexion-demo .c-nav button{font-size:14px}
 #orbit-tools #hologram-collexion-demo input,#orbit-tools #hologram-collexion-demo textarea,#orbit-tools #hologram-collexion-demo select{font-size:16px}
 @media(max-width:600px){#orbit-community .banner-title h3{font-size:14px}#orbit-community .tool-banner>p{font-size:12px}#orbit-community .banner-top,#orbit-community .banner-bottom{font-size:9px}#orbit-community .promotion-copy p{font-size:14px}#orbit-community .promotion-label,#orbit-community .promotion-bottom{font-size:8px}#orbit-community .identity-strip>div,#orbit-community .identity-button{font-size:12px}#orbit-community .compose-types button{font-size:11px}#orbit-community .post-text h3{font-size:21px}#orbit-community .mobile-nav small{font-size:10px}}
+
+#orbit-community .orbit-book-mark{width:44px;height:44px;object-fit:contain;flex-shrink:0}
