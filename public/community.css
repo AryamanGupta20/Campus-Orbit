@@ -22,5 +22,28 @@
 #orbit-community .post-text p,#orbit-community .profile-info p{overflow-wrap:anywhere}
 #orbit-community .user-image{display:block;width:100%;max-height:450px;object-fit:contain}
 #orbit-tools-return{display:block;margin:16px;padding:12px 20px;border:1px solid #b79ccd;background:#f1e8fa;color:#503266;border-radius:10px;cursor:pointer}
-#orbit-tools .campus-world,#orbit-tools .c-hologram,#orbit-tools .hologram{display:none!important}
+#orbit-tools .c-hologram{display:none!important}
 @media(max-width:600px){#orbit-community .app-header{height:auto;min-height:110px}#orbit-community .button-row{flex-wrap:wrap}#orbit-community .co-modal-body{padding:18px}}
+
+/* Readable type across the feed and the retained student tools. */
+#orbit-community{font-size:16px}
+#orbit-community .banner-title h3{font-size:16px}
+#orbit-community .tool-banner>p{font-size:13px;line-height:1.65}
+#orbit-community .banner-top,#orbit-community .banner-bottom{font-size:10px}
+#orbit-community .promotion-copy p{font-size:15px}
+#orbit-community .promotion-topics span{font-size:12px}
+#orbit-community .promotion-label,#orbit-community .promotion-bottom{font-size:10px}
+#orbit-community .identity-strip>div,#orbit-community .identity-button{font-size:14px}
+#orbit-community .app-header nav>button,#orbit-community .co-utility button{font-size:12px}
+#orbit-community .search input,#orbit-community .compose-prompt{font-size:14px}
+#orbit-community .compose-types button,#orbit-community .feed-tabs button{font-size:13px}
+#orbit-community .post-text h3{font-size:23px}
+#orbit-community .post-text p,#orbit-community .profile-info p{font-size:15px;line-height:1.7}
+#orbit-community .post header small,#orbit-community .post-count,#orbit-community .post footer button{font-size:12px}
+#orbit-community .muted,#orbit-community .person-card p,#orbit-community dialog label{font-size:13px}
+#orbit-community .tags span,#orbit-community .workspace-footer{font-size:11px}
+#orbit-tools #hologram-collexion-demo{font-size:16px}
+#orbit-tools #hologram-collexion-demo .c-card p,#orbit-tools #hologram-collexion-demo .c-subject p,#orbit-tools #hologram-collexion-demo .c-hero p{font-size:15px;line-height:1.7}
+#orbit-tools #hologram-collexion-demo .c-small,#orbit-tools #hologram-collexion-demo .c-btn,#orbit-tools #hologram-collexion-demo label,#orbit-tools #hologram-collexion-demo .c-nav button{font-size:14px}
+#orbit-tools #hologram-collexion-demo input,#orbit-tools #hologram-collexion-demo textarea,#orbit-tools #hologram-collexion-demo select{font-size:16px}
+@media(max-width:600px){#orbit-community .banner-title h3{font-size:14px}#orbit-community .tool-banner>p{font-size:12px}#orbit-community .banner-top,#orbit-community .banner-bottom{font-size:9px}#orbit-community .promotion-copy p{font-size:14px}#orbit-community .promotion-label,#orbit-community .promotion-bottom{font-size:8px}#orbit-community .identity-strip>div,#orbit-community .identity-button{font-size:12px}#orbit-community .compose-types button{font-size:11px}#orbit-community .post-text h3{font-size:21px}#orbit-community .mobile-nav small{font-size:10px}}
