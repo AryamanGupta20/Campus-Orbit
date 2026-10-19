@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS community_profiles(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,data TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS community_posts(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,data TEXT NOT NULL,created_at TEXT NOT NULL,deleted INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS community_posts_feed ON community_posts(deleted,created_at DESC);
+CREATE TABLE IF NOT EXISTS community_replies(id TEXT PRIMARY KEY,post_id TEXT NOT NULL REFERENCES community_posts(id),user_id TEXT NOT NULL REFERENCES users(id),body TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS community_replies_post ON community_replies(post_id,created_at);
+CREATE TABLE IF NOT EXISTS community_likes(post_id TEXT NOT NULL REFERENCES community_posts(id),user_id TEXT NOT NULL REFERENCES users(id),PRIMARY KEY(post_id,user_id));
+CREATE TABLE IF NOT EXISTS community_follows(user_id TEXT NOT NULL REFERENCES users(id),target_id TEXT NOT NULL REFERENCES users(id),PRIMARY KEY(user_id,target_id));
+CREATE TABLE IF NOT EXISTS community_connections(a TEXT NOT NULL REFERENCES users(id),b TEXT NOT NULL REFERENCES users(id),sender TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('pending','accepted')),PRIMARY KEY(a,b));
+CREATE TABLE IF NOT EXISTS community_blocks(user_id TEXT NOT NULL REFERENCES users(id),target_id TEXT NOT NULL REFERENCES users(id),PRIMARY KEY(user_id,target_id));
+CREATE TABLE IF NOT EXISTS community_dms(id TEXT PRIMARY KEY,sender TEXT NOT NULL REFERENCES users(id),recipient TEXT NOT NULL REFERENCES users(id),body TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS community_dm_pair ON community_dms(sender,recipient,created_at);
+CREATE TABLE IF NOT EXISTS community_alerts(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),body TEXT NOT NULL,created_at TEXT NOT NULL,seen INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS community_alerts_user ON community_alerts(user_id,created_at);
+CREATE TABLE IF NOT EXISTS community_preferences(user_id TEXT PRIMARY KEY REFERENCES users(id),alerts INTEGER NOT NULL DEFAULT 1);

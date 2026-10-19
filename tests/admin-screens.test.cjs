@@ -5,7 +5,7 @@ const root=new El,screen=new El;nodes.set('admin-screen',screen);nodes.set('admi
 
 (async()=>{
 const placementWrites=[];const Campus={catalog:[],catalogVideos:[],fatal(e){throw e},async api(path,method,data){if(path.includes('/logins'))return{logins:[]};if(path==='/admin/placement'){placementWrites.push(data);return{id:data.id||'new-job'};}if(path==='/admin/content')return{id:data.id||'new-course'};return{};}};
-const ctx={document:{getElementById:()=>root},window:{addEventListener(){}},Campus,URL,console};vm.createContext(ctx);for(const f of ['career-data.js','placement-admin.js','admin.js'])vm.runInContext(fs.readFileSync(__dirname+'/../public/'+f,'utf8'),ctx);
+const ctx={document:{getElementById:()=>root},window:{addEventListener(){}},Campus,URL,console};vm.createContext(ctx);for(const f of ['career-data.js','placement-admin.js','noticeboard-admin.js','admin.js'])vm.runInContext(fs.readFileSync(__dirname+'/../public/'+f,'utf8'),ctx);
 await ctx.window.mountAdmin({students:[],requests:[],content:{items:[],settings:{}}});
 async function page(value){await root.handlers.click({target:{closest:s=>s==='[data-page]'?{dataset:{page:value}}:null}});}
 async function click(action,value){await root.handlers.click({target:{closest:s=>s==='[data-action]'?{dataset:{action,value}}:null}});}
