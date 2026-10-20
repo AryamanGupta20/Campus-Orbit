@@ -5,6 +5,8 @@ import {adapter} from '../server/local.mjs';
 import {fileBucket} from '../worker/d1-files.mjs';
 import worker from '../worker/index.mjs';
 const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../migrations/0001_initial.sql',import.meta.url),'utf8'));
+sql.exec(readFileSync(new URL('../migrations/0002_community.sql',import.meta.url),'utf8'));
+sql.exec(readFileSync(new URL('../migrations/0003_control_studio.sql',import.meta.url),'utf8'));
 const DB=adapter(sql),bucket=fileBucket(DB);
 const bytes=crypto.getRandomValues(new Uint8Array(30000));await bucket.put('private/test',bytes.buffer);assert.deepEqual(new Uint8Array((await bucket.get('private/test')).body),bytes);
 await assert.rejects(bucket.put('too-large',new ArrayBuffer(1024*1024+1)));assert.equal(await bucket.get('too-large'),null);

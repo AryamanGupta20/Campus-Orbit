@@ -6,6 +6,8 @@ import {adapter} from '../server/local.mjs';
 const sql=new DatabaseSync(':memory:');
 sql.exec(readFileSync(new URL('../migrations/0001_initial.sql',import.meta.url),'utf8'));
 sql.exec(readFileSync(new URL('../migrations/0002_community.sql',import.meta.url),'utf8'));
+sql.exec(readFileSync(new URL('../migrations/0003_control_studio.sql',import.meta.url),'utf8'));
+sql.exec(readFileSync(new URL('../migrations/0002_community.sql',import.meta.url),'utf8'));
 sql.exec(readFileSync(new URL('../migrations/0002_community.sql',import.meta.url),'utf8'));
 const env={DB:adapter(sql),ADMIN_SETUP_TOKEN:'test-private-admin-token'};
 async function call(path,method='GET',data,who){const r=await handleApi(new Request('https://test.local/api'+path,{method,headers:{Origin:'https://test.local','X-Campus-Request':'1',Cookie:who?.cookie||'','Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{})}),env);return {status:r.status,body:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};}
@@ -36,6 +38,8 @@ assert.equal((await call('/community/messages','POST',{id:bid,text:'Not connecte
 await call('/community/connection','POST',{id:bid,action:'request'},a);
 assert.equal((await call('/community/connection','POST',{id:bid,action:'accept'},a)).status,400,'Sender cannot accept own request');
 assert.equal((await call('/community/connection','POST',{id:aid,action:'accept'},b)).status,200);
+assert.equal((await call('/community/messages','POST',{id:bid,text:'Private hello'},a)).status,403);
+for(const u of [a,b])await call('/community/consent','POST',{version:'moderation-v1'},u);
 assert.equal((await call('/community/messages','POST',{id:bid,text:'Private hello'},a)).status,200);
 assert.equal((await call('/community/messages?id='+aid,'GET',null,b)).body.messages[0].body,'Private hello');
 assert.equal((await call('/community/messages?id='+aid,'GET',null,c)).status,403);

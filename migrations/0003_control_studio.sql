@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS account_suspensions(user_id TEXT PRIMARY KEY REFERENCES users(id),reason TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS chat_consents(user_id TEXT PRIMARY KEY REFERENCES users(id),version TEXT NOT NULL,accepted_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS moderated_messages(message_id TEXT PRIMARY KEY REFERENCES community_dms(id));
+CREATE TABLE IF NOT EXISTS admin_audit(id TEXT PRIMARY KEY,admin_id TEXT NOT NULL,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS site_versions(id TEXT PRIMARY KEY,data TEXT NOT NULL,created_at TEXT NOT NULL,admin_id TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS site_submissions(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,block_id TEXT NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL);
