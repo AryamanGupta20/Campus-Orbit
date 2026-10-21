@@ -92,3 +92,8 @@ html,body{margin:0;background:#080f22;color:#eff3ff;font:15px/1.6 system-ui,sans
 
 /* Owner control studio */
 #campus-admin .studio-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.2fr);gap:22px}#campus-admin .studio-grid label{display:block;margin:14px 0}#campus-admin .studio-grid input,#campus-admin .studio-grid select,#campus-admin .studio-grid textarea{width:100%;font:inherit;padding:12px}#campus-admin .studio-grid input[type=checkbox]{width:auto}#studio-preview{width:100%;height:650px;border:1px solid #cbb5df;border-radius:14px;background:white}#campus-admin .studio-row{padding:18px 0;border-bottom:1px solid #cbb5df;overflow-wrap:anywhere}#campus-admin .studio-row small{display:block;margin:8px 0}#campus-admin .studio-pre{white-space:pre-wrap}#campus-admin .studio-head .tabs{display:flex;flex-wrap:wrap;gap:8px}#studio-status{min-height:24px;font-weight:600}.admin-badge{display:inline-block;background:#e9dafa;color:#513376;padding:4px 8px;border-radius:8px;font-size:12px;margin-left:8px}@media(max-width:850px){#campus-admin .studio-grid{grid-template-columns:1fr}#studio-preview{height:520px}}
+
+/* Owner canvas editor */
+.visual-preview-scroll{overflow:auto;max-width:100%;background:#ede8f4;padding:10px}.visual-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}.visual-panel{border-bottom:2px solid #9971c1;padding-bottom:22px;margin-bottom:24px}.visual-panel input[type=checkbox]{width:auto!important}.visual-panel h2{margin-top:0}#campus-admin .studio-grid>section{min-width:0}
+
+@media(min-width:851px){#campus-admin .studio-grid>section:last-child{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}}

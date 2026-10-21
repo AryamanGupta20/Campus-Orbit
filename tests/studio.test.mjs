@@ -10,13 +10,13 @@ const signup=(email,name,adminCode)=>call('/auth/signup','POST',{email,name,pass
 const a=await signup('a@test.example','Alpha'),b=await signup('b@test.example','Beta'),admin=await signup('aryamangupta55@gmail.com','Aryaman Gupta',env.ADMIN_SETUP_TOKEN);
 const aid=a.body.user.id,bid=b.body.user.id;
 assert.equal((await call('/admin/studio','GET',null,a)).status,403);
-const site={customPages:[{id:'page-workshops',title:'Workshops'}],pages:{welcome:{edits:{'text-abc':'<script>not executable</script>'}}},tools:{},founder:'Aryaman Gupta',blocks:[{id:'test-form',page:'dashboard',kind:'form',title:'Ask us',text:'Describe your question',button:'Send',position:'top'}]};
+const site={customPages:[{id:'page-workshops',title:'Workshops'}],pages:{welcome:{edits:{'text-abc':'<script>not executable</script>'},visual:{desktop:{'layer-title':{x:90,fontSize:42}},mobile:{'layer-title':{x:5,fontSize:24}},items:[]}}},tools:{},founder:'Aryaman Gupta',blocks:[{id:'test-form',page:'dashboard',kind:'form',title:'Ask us',text:'Describe your question',button:'Send',position:'top'}]};
 let d=await call('/admin/studio/draft','PUT',{version:0,site},admin);assert.equal(d.status,200);
 assert.equal((await call('/site')).body.site.blocks.length,0,'Draft must not leak');
 assert.equal((await call('/admin/studio/draft','PUT',{version:0,site},admin)).status,409);
 assert.equal((await call('/admin/studio/publish','POST',{version:1},a)).status,403);
 assert.equal((await call('/admin/studio/publish','POST',{version:1},admin)).status,200);
-assert.equal((await call('/site')).body.site.blocks[0].title,'Ask us');assert.equal((await call('/site')).body.site.customPages[0].id,'page-workshops');
+assert.equal((await call('/site')).body.site.pages.welcome.visual.desktop['layer-title'].x,90);assert.equal((await call('/site')).body.site.pages.welcome.visual.mobile['layer-title'].x,5);assert.equal((await call('/site')).body.site.blocks[0].title,'Ask us');assert.equal((await call('/site')).body.site.customPages[0].id,'page-workshops');
 assert.equal((await call('/site/submit','POST',{id:'test-form',text:'Hello'},a)).status,200);
 assert.equal((await call('/admin/studio/submissions','GET',null,admin)).body.submissions[0].body,'Hello');
 const bad=structuredClone(site);bad.blocks[0].url='javascript:alert(1)';assert.equal((await call('/admin/studio/draft','PUT',{version:1,site:bad},admin)).status,400);

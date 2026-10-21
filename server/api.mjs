@@ -40,7 +40,18 @@ if(d.study!==undefined){const e=obj(d.study);safe.study={start:text(e.start||'',
 if(d.career?.evidence!==undefined){safe.career.evidence={};const entries=Object.entries(obj(d.career.evidence));if(entries.length>200)fail('Too many project checkpoints.');for(const [key,value]of entries){if(!/^[a-z0-9-]{1,80}:[a-z0-9-]{1,80}$/.test(key))fail('Invalid checkpoint.');const p=obj(value);if(!Array.isArray(p.checks||[])||(p.checks||[]).length>5)fail('Invalid project checklist.');safe.career.evidence[key]={url:text(p.url||'',1500),notes:text(p.notes||'',2500),checks:[...new Set((p.checks||[]).filter(i=>Number.isInteger(i)&&i>=0&&i<5))]};}}
 if(d.placement!==undefined)safe.placement=cleanPlacement(d.placement);
 return safe;}
-async function requestList(db,user){const rows=await all(db,`SELECT r.*,u.name,u.email FROM requests r JOIN users u ON u.id=r.user_id ${user.role==='admin'?'':'WHERE r.user_id=?'} ORDER BY r.created_at DESC LIMIT 500`,...(user.role==='admin'?[]:[user.id]));for(const r of rows){r.messages=await all(db,'SELECT m.id,m.body AS text,m.created_at,u.role,u.name FROM messages m JOIN users u ON u.id=m.user_id WHERE m.request_id=? ORDER BY m.created_at',r.id);r.files=await all(db,'SELECT id,name,size,mime FROM attachments WHERE request_id=?',r.id);}return rows;}
+async function requestList(db,user){
+ const scope=user.role==='admin'?'':'WHERE user_id=?',args=user.role==='admin'?[]:[user.id];
+ const selected=`SELECT id FROM requests ${scope} ORDER BY created_at DESC LIMIT 500`;
+ const rows=await all(db,`SELECT r.*,u.name,u.email FROM requests r JOIN users u ON u.id=r.user_id WHERE r.id IN (${selected}) ORDER BY r.created_at DESC`,...args);if(!rows.length)return [];
+ const [messages,files]=await Promise.all([
+ all(db,`SELECT m.request_id,m.id,m.body AS text,m.created_at,u.role,u.name FROM messages m JOIN users u ON u.id=m.user_id WHERE m.request_id IN (${selected}) ORDER BY m.created_at`,...args),
+ all(db,`SELECT request_id,id,name,size,mime FROM attachments WHERE request_id IN (${selected})`,...args)]);
+ const byId=new Map(rows.map(r=>[r.id,{...r,messages:[],files:[]}]));
+ for(const {request_id,...m}of messages)byId.get(request_id)?.messages.push(m);
+ for(const {request_id,...f}of files)byId.get(request_id)?.files.push(f);
+ return [...byId.values()];
+}
 async function body(request){if(Number(request.headers.get('content-length')||0)>200000)fail('This request is too large.',413);let raw=await request.text();if(raw.length>200000)fail('This request is too large.',413);try{return obj(JSON.parse(raw));}catch(e){if(e.status)throw e;fail('Invalid request.');}}
 export async function handleApi(request,env){try{const db=env.DB;if(!db)fail('Database is not connected yet.',503);const path=new URL(request.url).pathname.replace(/^\/api/,'')||'/',method=request.method;
 if(!['GET','HEAD'].includes(method)){const origin=request.headers.get('origin');if(origin!==new URL(request.url).origin||request.headers.get('X-Campus-Request')!=='1')fail('Request origin not allowed.',403);}
