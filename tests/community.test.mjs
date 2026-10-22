@@ -24,6 +24,12 @@ const notice={enabled:true,label:'Campus event',title:'Workshop tomorrow',descri
 assert.equal((await call('/admin/noticeboard','PUT',notice,admin)).status,200);
 assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.title,notice.title);
 assert.equal((await call('/admin/noticeboard','PUT',{...notice,url:'javascript:alert(1)'},admin)).status,400);
+const poster='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=';
+assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:poster,imageAlt:'Campus festival'},admin)).status,200);
+assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.image,poster);
+assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:'data:image/png;base64,YWJj'},admin)).status,400);
+assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:poster},a)).status,403);
+
 await call('/admin/noticeboard','PUT',{...notice,enabled:false},admin);assert.equal((await call('/community/bootstrap','GET',null,a)).body.notice.enabled,false);
 let post=await call('/community/posts','POST',{type:'Project',title:'A useful project',body:'I made it',link:'https://example.org'},a);assert.equal(post.status,201);let pid=post.body.id;
 assert.equal((await call('/community/posts/'+pid,'DELETE',null,b)).status,403);
