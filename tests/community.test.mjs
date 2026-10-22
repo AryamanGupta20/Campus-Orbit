@@ -36,8 +36,17 @@ await call('/community/preferences','PUT',{alerts:false},a);await call('/communi
 await call('/community/follow','POST',{id:aid,enabled:true},b);assert.equal((await call('/community/posts?filter=Following','GET',null,b)).body.posts.length,1);
 assert.equal((await call('/community/messages','POST',{id:bid,text:'Not connected'},a)).status,403);
 await call('/community/connection','POST',{id:bid,action:'request'},a);
+assert.equal((await call('/community/profile?id='+aid,'GET',null,b)).body.profile.connections,0,'Pending requests are not connections');
 assert.equal((await call('/community/connection','POST',{id:bid,action:'accept'},a)).status,400,'Sender cannot accept own request');
 assert.equal((await call('/community/connection','POST',{id:aid,action:'accept'},b)).status,200);
+const counted=(await call('/community/profile?id='+aid,'GET',null,b)).body.profile;
+assert.equal(counted.followers,1);assert.equal(counted.connections,1);assert.equal(counted.memberLabel,'Student learner');assert.equal(counted.badge,'');
+assert.equal((await call('/community/bootstrap','GET',null,a)).body.profile.connections,1);
+const ownerFound=(await call('/community/people?q=Owner','GET',null,a)).body.people;
+assert.equal(ownerFound.length,1);assert.equal(ownerFound[0].badge,'Admin');assert.equal(ownerFound[0].memberLabel,'Admin');
+await call('/community/profile','PUT',{name:'Gamma',role:'Admin',badge:'Admin',followers:999},c);
+const spoof=(await call('/community/profile?id='+c.body.user.id,'GET',null,a)).body.profile;
+assert.equal(spoof.badge,'');assert.equal(spoof.memberLabel,'Student learner');assert.equal(spoof.followers,0);
 assert.equal((await call('/community/messages','POST',{id:bid,text:'Private hello'},a)).status,403);
 for(const u of [a,b])await call('/community/consent','POST',{version:'moderation-v1'},u);
 assert.equal((await call('/community/messages','POST',{id:bid,text:'Private hello'},a)).status,200);
@@ -46,6 +55,8 @@ assert.equal((await call('/community/messages?id='+aid,'GET',null,c)).status,403
 assert.equal((await call('/community/messages?id='+aid,'GET',null,admin)).status,403,'Admin cannot read private messages');
 await call('/community/posts/'+pid+'/report','POST',{text:'Please review this post'},b);assert((await call('/requests','GET',null,admin)).body.requests.some(r=>r.description.includes(pid)));
 await call('/community/block','POST',{id:aid,enabled:true},b);assert.equal((await call('/community/messages','POST',{id:bid,text:'Blocked'},a)).status,403);assert.equal((await call('/community/posts','GET',null,b)).body.posts.length,0);
+assert.equal((await call('/community/bootstrap','GET',null,a)).body.profile.connections,0);
+assert.equal((await call('/community/bootstrap','GET',null,a)).body.profile.followers,0);
 await call('/community/block','POST',{id:aid,enabled:false},b);assert.equal((await call('/community/messages','POST',{id:bid,text:'Still disconnected'},a)).status,403);
 assert.equal((await call('/community/posts/'+pid,'DELETE',null,admin)).status,200);assert.equal((await call('/community/posts','GET',null,a)).body.posts.length,0);
 // Stable cursor ordering when posts share timestamps.

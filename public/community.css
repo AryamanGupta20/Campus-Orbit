@@ -49,3 +49,10 @@
 @media(max-width:600px){#orbit-community .banner-title h3{font-size:14px}#orbit-community .tool-banner>p{font-size:12px}#orbit-community .banner-top,#orbit-community .banner-bottom{font-size:9px}#orbit-community .promotion-copy p{font-size:14px}#orbit-community .promotion-label,#orbit-community .promotion-bottom{font-size:8px}#orbit-community .identity-strip>div,#orbit-community .identity-button{font-size:12px}#orbit-community .compose-types button{font-size:11px}#orbit-community .post-text h3{font-size:21px}#orbit-community .mobile-nav small{font-size:10px}}
 
 #orbit-community .orbit-book-mark{width:44px;height:44px;object-fit:contain;flex-shrink:0}
+
+/* Public account counts stay readable on phone cards. */
+#orbit-community .profile-counts{display:flex;flex-wrap:wrap;gap:18px;padding:16px 0;border-top:1px solid #ac8eb244;margin-top:16px;font-size:14px}
+#orbit-community .profile-counts b{display:block;font-size:23px;line-height:1.4}
+#orbit-community .search-results>h1{font-size:clamp(24px,4vw,34px);overflow-wrap:anywhere}
+#orbit-community .search-results .feed-main{margin-top:28px}
+#orbit-community .search button{min-width:64px}
