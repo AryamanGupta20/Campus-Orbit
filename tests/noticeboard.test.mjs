@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {eventFields,visibleNotice} from '../server/noticeboard.mjs';
+const fail=m=>{throw Error(m)},text=(v,max)=>{assert.equal(typeof v,'string');assert(v.length<=max);return v};
+const event={enabled:true,eventStart:'2030-02-01T10:00+05:30',eventEnd:'2030-02-01T18:00+05:30',registrationDeadline:'2030-02-01T09:00+05:30',venue:'Main auditorium'};
+assert.deepEqual(eventFields(event,text,fail),Object.fromEntries(Object.entries(event).filter(([k])=>k!=='enabled')));
+for(const changes of [{eventEnd:''},{eventEnd:event.eventStart},{eventStart:'2030-02-30T10:00+05:30'},{eventStart:'2030-02-01T10:00Z'},{registrationDeadline:'2030-02-02T10:00+05:30'}])assert.throws(()=>eventFields({...event,...changes},text,fail));
+assert.equal(visibleNotice(event,Date.parse(event.registrationDeadline)-1).registrationClosed,false);
+assert.equal(visibleNotice(event,Date.parse(event.registrationDeadline)).registrationClosed,true);
+assert.equal(visibleNotice(event,Date.parse(event.eventEnd)-1).enabled,true);
+assert.equal(visibleNotice(event,Date.parse(event.eventEnd)).enabled,false);
+assert.equal(visibleNotice({...event,enabled:false},0).enabled,false);
+assert.equal(visibleNotice({enabled:true}).enabled,true);
+console.log('PASS: strict India-time dates, invalid ranges, exact registration and event expiry boundaries, permanent notices.');

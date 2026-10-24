@@ -25,8 +25,13 @@ assert.equal((await call('/admin/noticeboard','PUT',notice,admin)).status,200);
 assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.title,notice.title);
 assert.equal((await call('/admin/noticeboard','PUT',{...notice,url:'javascript:alert(1)'},admin)).status,400);
 const poster='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=';
-assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:poster,imageAlt:'Campus festival'},admin)).status,200);
+assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:poster,backgroundImage:poster,imageAlt:'Campus festival',eventStart:'2030-02-01T10:00+05:30',eventEnd:'2030-02-01T18:00+05:30',venue:'Main auditorium'},admin)).status,200);
 assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.image,poster);
+assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.backgroundImage,poster);
+assert.equal((await call('/admin/noticeboard','PUT',{...notice,backgroundImage:'javascript:bad'},admin)).status,400);
+await call('/admin/noticeboard','PUT',{...notice,eventStart:'2020-02-01T10:00+05:30',eventEnd:'2020-02-01T18:00+05:30'},admin);
+assert.equal((await call('/community/bootstrap','GET',null,b)).body.notice.enabled,false);
+assert.equal((await call('/admin/noticeboard','GET',null,admin)).body.notice.enabled,true,'Expired notice remains editable');
 assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:'data:image/png;base64,YWJj'},admin)).status,400);
 assert.equal((await call('/admin/noticeboard','PUT',{...notice,image:poster},a)).status,403);
 

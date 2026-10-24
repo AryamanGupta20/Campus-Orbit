@@ -13,3 +13,11 @@ The ticket shows the full image without cropping. Event text stays outside the t
 To remove the photo, select Remove current ticket photo and save. To hide the whole banner, turn off Show banner to students and save. Students see published changes after refreshing.
 
 Only administrators can publish noticeboard changes. Uploaded images are visible to signed-in students on the dashboard; do not use private student documents as promotional images.
+
+## Event promotions
+
+Add event start and end, venue, and an optional registration deadline. All dates use India Standard Time (IST), even on a device in another timezone. Both start and end are required for an event; leave both empty for a permanent announcement. The server hides ended events from students. An already-open feed checks expiry every 30 seconds. Expired events remain available in the admin form for editing.
+
+The registration link is replaced with “Registration closed” at the deadline. This controls the Campus Orbit banner only; an external registration service controls its own acceptance of registrations.
+
+Upload a separate background photo behind the text. A shaded overlay keeps the writing readable. Each image can be replaced or removed independently. Photos are compressed before saving; overly detailed images may need a smaller version. No email reminders or registration system are added by these settings.
