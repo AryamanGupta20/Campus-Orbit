@@ -20,3 +20,13 @@ No live job listings are seeded. Company suggestions are editorial starting poin
 Private placement state uses the existing versioned state API. Older clients preserve omitted placement state. Shared portfolios and admin student listings exclude preparation answers and application notes. Public/admin placement content uses the existing content table and an admin-only endpoint; no schema migration.
 
 Eight test suites cover planner limits, language coverage, mocked UI actions, private persistence, tenant isolation, source review validation, draft/closed visibility and existing account flows. DOM tests are stubs. Visual desktop/phone checks and production-account persistence are not claimed: browser approval was previously blocked by a usage limit.
+
+
+## Company hiring routes
+Students choose a role, then Company hiring routes. Published company entries with a route type appear here. Legacy company suggestions remain in the directory.
+
+Admin > Placement content > Add company hiring route: enter the company, route name/type, HTTPS official source, roles, requirements, source-check date, application steps (one per line), selection stages and preparation tasks. Ready publishes; Draft hides. Applications Closed keeps a published route visible as closed. Open routes require a source check within 14 days and a current review-by date. Deadlines close routes automatically.
+
+Student step progress is private, saved with placement state, and keyed to the step text so editing a step does not reuse an unrelated completion. Eligibility uses self-reported details and known requirements, not an employer decision. External links never submit applications or mark them Applied.
+
+No automatic job feed or route-watch notification delivery is connected. No sample company routes are published.

@@ -14,3 +14,9 @@ assert.equal(cleanPlacement({...data,profile:{degree:'BCA',year:'2027',experienc
 assert.throws(()=>cleanPlacement({...data,profile:{year:'oops'}}));
 assert.throws(()=>cleanOpportunity({...job,deadline:'2026-10-15'},'job','2026-10-16'));
 assert.deepEqual(cleanOpportunity({...job,degrees:['BCA'],years:['2027']},'job','2026-10-16').degrees,['BCA']);
+
+const route={...job,routeType:'Graduate programme',routeStatus:'Open',steps:['Register','Submit application'],stages:['Assessment'],requirements:'No active backlogs',preparation:'Review project evidence'};
+assert.equal(cleanOpportunity(route,'company','2026-10-16').steps.length,2);
+for(const change of [{steps:[]},{routeType:'Fake'},{routeStatus:'Guaranteed'},{expires:''},{checked:'2026-09-01'},{steps:Array(16).fill('step')}])assert.throws(()=>cleanOpportunity({...route,...change},'company','2026-10-16'));
+assert.equal(cleanOpportunity({...route,routeStatus:'Closed',deadline:'2026-10-01'},'company','2026-10-16').routeStatus,'Closed');
+assert(cleanPlacement({...data,done:['route:route1:step1']}).done.includes('route:route1:step1'));

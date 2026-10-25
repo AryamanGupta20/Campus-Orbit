@@ -22,6 +22,10 @@ await tool.action('pd-tab','jobs');assert(tool.render().includes('Example'));ass
 assert(!tool.render().includes('Explore career roadmaps'));
 const copy=JSON.parse(JSON.stringify(tool.snapshot()));const restored=make(copy);assert.equal(restored.snapshot().placement.apps[0].status,'Interview');assert(saves>0);
 assert(!api.prep(state,now).tasks.some(t=>t.kind==='interview'));await tool.action('pd-tab','interviews');assert(!tool.render().includes('pd-question'));assert(!tool.render().includes('Round practice'));
+const route={id:'route1',kind:'company',company:'Test employer',title:'Graduate programme',routeType:'Graduate programme',routeStatus:'Open',status:'Ready',checked:now,expires:date(5),deadline:date(4),roles:['frontend'],skills:['web'],degrees:['BCA'],steps:['Create account','Submit the application'],stages:['Assessment'],url:'https://example.test/careers'};
+content.items.push(route);await tool.action('pd-tab','routes');assert(tool.render().includes('Graduate programme'));assert(tool.render().includes('Submit the application'));assert(tool.render().includes('Selection stages'));assert(tool.render().includes('pd-save-route'));
+assert.equal(api.routeStatus(route,now),'Open');assert.equal(api.routeStatus({...route,deadline:date(-1)},now),'Closed');assert.equal(api.routeStatus({...route,checked:date(-15)},now),'Needs a fresh check');assert.equal(api.routeStatus({...route,routeStatus:'Dates not announced'},now),'Dates not announced');
+await tool.action('pd-save-route','route1');assert(state.apps.some(a=>a.source==='route1'&&a.status==='Saved'));route.routeStatus='Closed';await tool.action('pd-tab','routes');assert(!tool.render().includes('pd-save-route'));
 await tool.action('pd-back');assert.equal(section,'home');
 console.log('PASS: placement role selection, skills, scheduling, interview removal, job freshness, applications and restored private state.');
 })().catch(e=>{console.error(e);process.exitCode=1});
