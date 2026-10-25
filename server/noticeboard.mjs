@@ -18,3 +18,9 @@ export function visibleNotice(n,at=Date.now()){
  const registrationClosed=!!n.registrationDeadline&&Date.parse(n.registrationDeadline)<=Number(at);
  return {...n,enabled:!!n.enabled&&!expired,expired,registrationClosed};
 }
+
+export function noticeDefaults(slot,primary){
+ if(slot===1)return primary;
+ return {enabled:false,label:slot===2?'Tech community':'Placement cell',title:slot===2?'Less watching. More building.':'Your next chapter. Meet the possibilities.',description:slot===2?'Add the confirmed details of your university workshop here.':'Add the confirmed details of your career or alumni event here.',tags:slot===2?['Workshop','Student projects']:['Careers','Alumni'],button:'',url:'',image:'',backgroundImage:''};
+}
+export const noticeKey=slot=>slot===1?'noticeboard':'noticeboard-'+slot;

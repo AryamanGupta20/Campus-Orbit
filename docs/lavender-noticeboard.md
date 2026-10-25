@@ -21,3 +21,9 @@ Add event start and end, venue, and an optional registration deadline. All dates
 The registration link is replaced with “Registration closed” at the deadline. This controls the Campus Orbit banner only; an external registration service controls its own acceptance of registrations.
 
 Upload a separate background photo behind the text. A shaded overlay keeps the writing readable. Each image can be replaced or removed independently. Photos are compressed before saving; overly detailed images may need a smaller version. No email reminders or registration system are added by these settings.
+
+## Three event banners
+
+Use Choose banner to edit slots 1, 2 and 3 independently. Existing noticeboard content remains in slot 1. Slots 2 and 3 start hidden, with editable workshop/career starter text. Add confirmed event details and enable them before publishing. Switching slots warns before discarding unsaved changes.
+
+The feed shows only enabled, unexpired banners, ordered by slot. With two or more, students can use arrows, numbered selectors, event cards, View all events, or a horizontal phone swipe. There is no automatic sliding. Each slot keeps separate photos, dates, venue and destination. Hide a slot using Show banner to students.

@@ -74,3 +74,17 @@ assert.equal((await call('/community/posts/'+pid,'DELETE',null,admin)).status,20
 for(let i=0;i<23;i++)sql.prepare('INSERT INTO community_posts(id,user_id,data,created_at) VALUES (?,?,?,?)').run('page-'+String(i).padStart(2,'0'),aid,JSON.stringify({type:'Project',title:'Pagination',body:'Text'}),'2026-10-19T00:00:00.000Z');
 const page1=(await call('/community/posts','GET',null,a)).body,page2=(await call('/community/posts?before='+encodeURIComponent(page1.next),'GET',null,a)).body;assert.equal(page1.posts.length,20);assert.equal(page2.posts.length,3);assert.equal(new Set([...page1.posts,...page2.posts].map(p=>p.id)).size,23);
 console.log('PASS: migration, noticeboard admin authorization, public profile privacy, posts/replies, likes, pagination, follows, mutual connections, private messages, blocks, reports, alerts.');
+
+// Three independent slots preserve existing banner data and exclude hidden/expired drafts.
+const slotOne=(await call('/admin/noticeboard','GET',null,admin)).body.notice;
+assert.equal((await call('/admin/noticeboard?slot=2','GET',null,admin)).body.notice.enabled,false);
+assert.equal((await call('/admin/noticeboard?slot=4','GET',null,admin)).status,400);
+assert.equal((await call('/admin/noticeboard?slot=2','PUT',notice,a)).status,403);
+for(const slot of [1,2,3])assert.equal((await call('/admin/noticeboard?slot='+slot,'PUT',{...notice,title:'Event '+slot},admin)).status,200);
+assert.deepEqual((await call('/community/bootstrap','GET',null,a)).body.notices.map(n=>n.title),['Event 1','Event 2','Event 3']);
+await call('/admin/noticeboard?slot=2','PUT',{...notice,enabled:false,title:'Private draft'},admin);
+await call('/admin/noticeboard?slot=3','PUT',{...notice,eventStart:'2020-02-01T10:00+05:30',eventEnd:'2020-02-01T18:00+05:30'},admin);
+const visible=(await call('/community/bootstrap','GET',null,a)).body;
+assert.equal(visible.notices.length,1);assert.equal(visible.notices[0].slot,1);assert(!JSON.stringify(visible).includes('Private draft'));
+assert.equal((await call('/admin/noticeboard?slot=2','GET',null,admin)).body.notice.title,'Private draft');
+console.log('PASS: three independent notice slots, preserved first slot, authorization, hidden drafts and expiry.');
