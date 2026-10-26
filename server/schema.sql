@@ -38,3 +38,11 @@ CREATE TABLE IF NOT EXISTS moderated_messages(message_id TEXT PRIMARY KEY REFERE
 CREATE TABLE IF NOT EXISTS admin_audit(id TEXT PRIMARY KEY,admin_id TEXT NOT NULL,action TEXT NOT NULL,details TEXT NOT NULL,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS site_versions(id TEXT PRIMARY KEY,data TEXT NOT NULL,created_at TEXT NOT NULL,admin_id TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS site_submissions(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,block_id TEXT NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL);
+
+-- Index frequent report, account, and privacy lookups without changing records.
+CREATE INDEX IF NOT EXISTS messages_request_created ON messages(request_id,created_at);
+CREATE INDEX IF NOT EXISTS attachments_request ON attachments(request_id);
+CREATE INDEX IF NOT EXISTS requests_created ON requests(created_at DESC);
+CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+CREATE INDEX IF NOT EXISTS users_created ON users(created_at DESC);
+CREATE INDEX IF NOT EXISTS community_blocks_target ON community_blocks(target_id,user_id);

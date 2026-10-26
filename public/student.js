@@ -735,7 +735,15 @@ function snapshot(){return JSON.stringify({course:state.course,profile,projects,
 let savedSnapshot=snapshot();
 Campus.catalog=courses.map(c=>({id:c.id,title:c.title,roadmap:stages(c).map(s=>s[0]+': '+s[1]).join('\n'),subject:resources[c.subjects[0]]?.[0]||'Programming',url:resources[c.subjects[0]]?'https://www.youtube.com/playlist?list='+resources[c.subjects[0]][3]:'https://www.youtube.com/playlist?list=PLu0W_9lII9agwh1XjRt242xIpHhPT2llg',status:'Ready'}));
 Campus.catalogVideos=socialVideos.map((v,i)=>({id:'base-video-'+i,title:v.title,topic:v.tag,language:v.lang,url:v.url||'https://www.youtube.com/watch?v='+v.id,status:'Ready'}));
-async function flush(){clearTimeout(timer);if(saving)await saving;const next=snapshot();if(next===savedSnapshot)return;if(saveError?.status===409)throw saveError;Campus.status('Saving…');saving=(async()=>{try{const r=await Campus.api('/state','PUT',{data:JSON.parse(next),version});version=r.version;savedSnapshot=next;saveError=null;Campus.status('All changes saved');}catch(e){saveError=e;Campus.status(e.status===409?'Not saved: another tab changed your data. Copy your recent edits before reloading.':'Not saved — '+e.message,true,e.status!==409);throw e;}finally{saving=null;}})();await saving;if(snapshot()!==savedSnapshot)return flush();}
+function flush(){
+ clearTimeout(timer);if(saving)return saving;
+ saving=(async()=>{while(snapshot()!==savedSnapshot){
+  if(saveError?.status===409)throw saveError;
+  const next=snapshot();Campus.status('Saving…');
+  try{const r=await Campus.api('/state','PUT',{data:JSON.parse(next),version});version=r.version;savedSnapshot=next;saveError=null;Campus.status(snapshot()===savedSnapshot?'All changes saved':'Saving your latest changes…');}
+  catch(e){saveError=e;Campus.status(e.status===409?'Not saved: another tab changed your data. Copy your recent edits before reloading.':'Not saved — '+e.message,true,e.status!==409);throw e;}
+ }} )().finally(()=>{saving=null;});return saving;
+}
 function queueSave(){if(disposed||snapshot()===savedSnapshot)return;clearTimeout(timer);if(!saveError)Campus.status('Waiting to save…');timer=setTimeout(()=>flush().catch(()=>{}),350);}
 const unload=e=>{if(snapshot()!==savedSnapshot){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);
 for(const item of payload.content.items||[]){if(item.status!=='Ready')continue;if(item.kind==='course'){let c=courses.find(c=>c.id===item.id||c.title===item.title);if(!c){c={id:item.id,title:esc(item.title),name:esc(item.title),group:'Computing',family:'cs',subjects:[],refs:[],project:'Build a project that shows what you learned.'};courses.push(c);}c.title=esc(item.title);c.liveRoadmap=item.roadmap.split('\n').filter(s=>s.trim());c.livePlaylist={subject:item.subject,url:item.url};}if(item.kind==='video'){const u=new URL(item.url);const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.searchParams.get('v');const playlist=u.pathname==='/playlist'&&!!u.searchParams.get('list');if(id||playlist){const video={title:item.title,creator:'Selected by Campus Orbit',lang:item.language,id,url:item.url,playlist,tag:item.topic,keys:item.topic.toLowerCase(),why:'Selected learning resource.'};const base=/^base-video-(\d+)$/.exec(item.id);if(base&&socialVideos[Number(base[1])])socialVideos[Number(base[1])]=video;else socialVideos.push(video);}}}

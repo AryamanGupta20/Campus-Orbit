@@ -1,0 +1,20 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const document={documentElement:{dataset:{}},head:{appendChild(){}},createElement(){return {}},getElementById(){return {}},querySelector(){return true}};
+const context={window:{},document,location:{pathname:'/dashboard'},console,URL,FormData,AbortController,structuredClone,setTimeout,clearTimeout};
+vm.createContext(context);let boot=fs.readFileSync('public/boot.js','utf8');boot=boot.slice(0,boot.indexOf("document.addEventListener('click'"))+'})();';
+const response=(body,status=200)=>({ok:status<400,status,json:async()=>body});
+(async()=>{await vm.runInContext(boot,context);const api=context.window.Campus.api;
+let calls=0,resolve;context.fetch=()=>{calls++;return new Promise(r=>resolve=r)};
+const a=api('/test'),b=api('/test');assert.equal(calls,1);resolve(response({list:[1]}));const [one,two]=await Promise.all([a,b]);one.list.push(2);assert.equal(two.list.length,1,'concurrent readers do not share mutable state');
+context.fetch=async()=>{calls++;return response({ok:true})};await api('/test');assert.equal(calls,2,'no stale read cache retained');
+calls=0;context.fetch=async()=>{calls++;if(calls===1)throw new TypeError('offline');return response({ok:true})};await api('/retry');assert.equal(calls,2);
+calls=0;context.fetch=async()=>{calls++;throw new TypeError('offline')};await assert.rejects(api('/message','POST',{}));assert.equal(calls,1,'mutations never automatically retried');
+calls=0;context.fetch=async()=>{calls++;return response({error:'Conflict'},409)};await assert.rejects(api('/state','PUT',{}),e=>e.status===409);assert.equal(calls,1);
+calls=0;context.setTimeout=(fn,ms)=>setTimeout(fn,ms>=12000?1:0);context.fetch=(url,options)=>{calls++;return new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>reject(Object.assign(Error('timeout'),{name:'AbortError'}))))};await assert.rejects(api('/timeout'),/Loading took too long/);assert.equal(calls,2);
+// Exercise the actual student save loop with overlapping flushes and edits during a write.
+let student=fs.readFileSync('public/student.js','utf8');const start=student.indexOf('function flush(){\n clearTimeout(timer)'),end=student.indexOf('\nfunction queueSave()',start);
+const saveContext={Promise,JSON,clearTimeout,Campus:{status(){},api:async()=>{}},timer:null,saving:null,saveError:null,version:0,savedSnapshot:'{"n":0}',current:'{"n":1}',snapshot(){return saveContext.current}};vm.createContext(saveContext);vm.runInContext(student.slice(start,end),saveContext);
+const writes=[];saveContext.Campus.api=(p,m,b)=>new Promise(r=>writes.push({b,r}));const first=saveContext.flush();saveContext.current='{"n":2}';const second=saveContext.flush();assert.equal(first,second);assert.equal(writes.length,1);writes[0].r({version:1});await new Promise(r=>setImmediate(r));assert.equal(writes.length,2);assert.equal(writes[1].b.version,1);assert.equal(writes[1].b.data.n,2);writes[1].r({version:2});await Promise.all([first,second]);assert.equal(saveContext.savedSnapshot,'{"n":2}');assert.equal(saveContext.saving,null);
+saveContext.current='{"n":3}';saveContext.Campus.api=async()=>{throw Object.assign(Error('conflict'),{status:409})};await assert.rejects(saveContext.flush());assert.equal(saveContext.savedSnapshot,'{"n":2}');assert.equal(saveContext.current,'{"n":3}');assert.equal(saveContext.saving,null);
+console.log('PASS: duplicate reads, independent results, bounded retries, no mutation retries, serialized latest-state saves and conflict retention.');
+})().catch(e=>{console.error(e);process.exitCode=1});
