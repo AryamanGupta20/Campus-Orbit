@@ -1,0 +1,26 @@
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {adapter} from '../server/local.mjs';
+import {handleApi} from '../server/api.mjs';
+const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../server/schema.sql',import.meta.url),'utf8'));
+const db=adapter(sql);let beforeBatch=null;
+const env={DB:{...db,async batch(statements){if(beforeBatch){const hook=beforeBatch;beforeBatch=null;hook();}return db.batch(statements);}}};
+const call=(path,data,cookie='')=>handleApi(new Request('https://campus.test/api'+path,{method:'POST',headers:{Origin:'https://campus.test','X-Campus-Request':'1','Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(data)}),env);
+const signup=await call('/auth/signup',{name:'Race fixture',email:'race@example.test',password:'test-password-12345'}),u=await signup.json(),cookie=signup.headers.get('set-cookie').split(';')[0];assert.equal(signup.status,200);
+const credentials={...sql.prepare('SELECT * FROM users WHERE id=?').get(u.user.id)};
+beforeBatch=()=>{sql.prepare('UPDATE users SET password_hash=?,recovery_hash=? WHERE id=?').run('new-hash','new-recovery',u.user.id);sql.prepare('DELETE FROM sessions WHERE user_id=?').run(u.user.id);};
+assert.equal((await call('/auth/login',{email:'race@example.test',password:'test-password-12345'})).status,401);
+assert.equal(sql.prepare('SELECT count(*) AS n FROM sessions').get().n,0,'delayed old login must not resurrect a session');
+assert.equal(sql.prepare('SELECT login_count FROM users').get().login_count,1);
+sql.prepare('UPDATE users SET password_hash=?,recovery_hash=? WHERE id=?').run(credentials.password_hash,credentials.recovery_hash,u.user.id);
+const login=await call('/auth/login',{email:'race@example.test',password:'test-password-12345'}),fresh=login.headers.get('set-cookie').split(';')[0];assert.equal(login.status,200);
+const change=()=>call('/auth/password',{current:'test-password-12345',password:'changed-password-12345'},fresh);
+const changes=await Promise.all([change(),change()]);assert.deepEqual(changes.map(r=>r.status).sort(),[200,401]);assert.equal(sql.prepare('SELECT count(*) AS n FROM sessions').get().n,1);
+beforeBatch=()=>sql.prepare('INSERT INTO account_suspensions VALUES (?,?,?)').run(u.user.id,'test suspension',new Date().toISOString());
+assert.equal((await call('/auth/login',{email:'race@example.test',password:'changed-password-12345'})).status,403);
+// Rate-limit response tells clients when to retry instead of encouraging repeated clicks.
+for(let i=0;i<13;i++)await call('/auth/login',{email:'retry@example.test',password:'wrong-password-12345'});
+const limited=await call('/auth/login',{email:'retry@example.test',password:'wrong-password-12345'});assert.equal(limited.status,429);assert(Number(limited.headers.get('retry-after'))>0);
+const busy=await handleApi(new Request('https://campus.test/api/health'),{DB:{prepare(){throw Error('D1_ERROR: Database is overloaded.');}}});assert.equal(busy.status,503);assert.equal(busy.headers.get('retry-after'),'10');assert(!(await busy.text()).includes('D1_ERROR'));
+sql.close();console.log('PASS: reset/login race, password-change race, suspension/login race, retry timing, safe overload response.');

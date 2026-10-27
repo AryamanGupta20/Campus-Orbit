@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-27T13:21:02.629Z",
+  "environment": "Local Node HTTP server and SQLite. Not Cloudflare D1 capacity or a hosted SLA.",
+  "results": [
+    {
+      "requests": 25,
+      "network": "shared",
+      "statuses": {
+        "200": 25
+      },
+      "created": 25,
+      "wallMs": 95,
+      "p50Ms": 87,
+      "p95Ms": 88,
+      "health": 200
+    },
+    {
+      "requests": 50,
+      "network": "shared",
+      "statuses": {
+        "200": 50
+      },
+      "created": 50,
+      "wallMs": 144,
+      "p50Ms": 138,
+      "p95Ms": 140,
+      "health": 200
+    },
+    {
+      "requests": 100,
+      "network": "shared",
+      "statuses": {
+        "200": 100
+      },
+      "created": 100,
+      "wallMs": 295,
+      "p50Ms": 287,
+      "p95Ms": 289,
+      "health": 200
+    },
+    {
+      "requests": 250,
+      "network": "shared",
+      "statuses": {
+        "200": 180,
+        "429": 70
+      },
+      "created": 180,
+      "wallMs": 584,
+      "p50Ms": 394,
+      "p95Ms": 576,
+      "health": 200
+    },
+    {
+      "requests": 1000,
+      "network": "shared",
+      "statuses": {
+        "200": 180,
+        "429": 820
+      },
+      "created": 180,
+      "wallMs": 1159,
+      "p50Ms": 751,
+      "p95Ms": 1119,
+      "health": 200
+    },
+    {
+      "requests": 1000,
+      "network": "distinct-test-ips",
+      "statuses": {
+        "200": 1000
+      },
+      "created": 1000,
+      "wallMs": 3055,
+      "p50Ms": 3025,
+      "p95Ms": 3029,
+      "health": 200
+    }
+  ],
+  "integrity": "ok",
+  "missingStudentRecords": 0
+}
