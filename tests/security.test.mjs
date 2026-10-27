@@ -1,0 +1,27 @@
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {handleApi} from '../server/api.mjs';
+import {adapter} from '../server/local.mjs';
+import {boundedBytes,staticSecurityHeaders} from '../server/security.mjs';
+const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../server/schema.sql',import.meta.url),'utf8'));const env={DB:adapter(sql)};
+async function call(path,data,cookie='',headers={}){return handleApi(new Request('https://campus.test/api'+path,{method:'POST',headers:{Origin:'https://campus.test','X-Campus-Request':'1','Content-Type':'application/json',Cookie:cookie,...headers},body:JSON.stringify(data)}),env);}
+const signup=await call('/auth/signup',{name:'Security fixture',email:'secure@example.test',password:'test-password-12345'}),user=await signup.json(),cookie=signup.headers.get('set-cookie').split(';')[0];assert.equal(signup.status,200);
+assert.match(signup.headers.get('set-cookie'),/HttpOnly; SameSite=Lax/);assert.match(signup.headers.get('set-cookie'),/Secure/);
+assert.equal(signup.headers.get('cache-control'),'no-store');assert.equal(signup.headers.get('x-frame-options'),'DENY');
+assert.equal((await call('/auth/password',{current:'wrong-password-12345',password:'new-password-12345'},cookie,{Origin:'https://evil.test'})).status,403);
+for(let i=0;i<6;i++)assert.equal((await call('/auth/password',{current:'wrong-password-12345',password:'new-password-12345'},cookie)).status,401);
+assert.equal((await call('/auth/password',{current:'wrong-password-12345',password:'new-password-12345'},cookie)).status,429);
+const recovery=()=>call('/auth/recover',{email:'secure@example.test',password:'new-password-12345',recoveryCode:user.recoveryCode});
+const racing=await Promise.all([recovery(),recovery()]);assert.deepEqual(racing.map(r=>r.status).sort(),[200,401]);
+assert.equal((await handleApi(new Request('https://campus.test/api/state',{headers:{Cookie:cookie}}),env)).status,401);
+let cancelled=false;
+const stream=new ReadableStream({pull(c){c.enqueue(new Uint8Array(110000));},cancel(){cancelled=true;}});
+const large=new Request('https://campus.test/api/auth/login',{method:'POST',headers:{Origin:'https://campus.test','X-Campus-Request':'1','Content-Type':'application/json'},body:stream,duplex:'half'});
+assert.equal((await handleApi(large,env)).status,413);assert(cancelled,'oversize chunked body must be cancelled');
+assert.deepEqual(await boundedBytes(new Request('https://campus.test',{method:'POST',body:'hello'}),5),new TextEncoder().encode('hello'));
+await assert.rejects(()=>boundedBytes(new Request('https://campus.test',{method:'POST',body:'ééé'}),5),e=>e.status===413);
+const headers=readFileSync(new URL('../public/_headers',import.meta.url),'utf8');for(const [key,value]of Object.entries(staticSecurityHeaders))assert(headers.includes(`${key}: ${value}`));
+assert.match(staticSecurityHeaders['Content-Security-Policy'],/frame-ancestors 'self'/);
+assert(!staticSecurityHeaders['Content-Security-Policy'].split(';').find(s=>s.trim().startsWith('script-src')).includes('unsafe-inline'));
+sql.close();console.log('PASS: password-change throttling, concurrent recovery single use, revoked sessions, CSRF, chunked byte limits, cancellation and browser security headers.');
