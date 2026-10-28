@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import frontend from '../worker/frontend.mjs';
+import backend from '../worker/backend.mjs';
+const request=new Request('https://collexion-campus.aryamangupta55.workers.dev/api/state',{method:'POST',headers:{Origin:'https://collexion-campus.aryamangupta55.workers.dev',Cookie:'campus_session=test','X-Campus-Request':'1'},body:'{}'});
+let forwarded;
+const result=await frontend.fetch(request,{API:{fetch:async r=>{forwarded=r;return new Response('ok');}}});
+assert.equal(await result.text(),'ok');assert.equal(forwarded,request);
+assert.equal(forwarded.headers.get('Cookie'),'campus_session=test');
+assert.equal(await forwarded.text(),'{}');
+assert.equal((await frontend.fetch(new Request(request.url),{})).status,503);
+const asset=await frontend.fetch(new Request('https://example.test/'),{ASSETS:{fetch:async()=>new Response('page')}});
+assert.equal(asset.headers.get('X-Content-Type-Options'),'nosniff');
+assert.equal(await asset.text(),'page');
+for(const [url,env] of [['https://api.example.test/api/me',{PUBLIC_ORIGIN:'https://example.test'}],['https://example.test/',{PUBLIC_ORIGIN:'https://example.test'}],['https://example.test/api/me',{}]])assert.equal((await backend.fetch(new Request(url),env)).status,404);
+console.log('Split hosting: request forwarding, headers and backend origin checks passed.');
