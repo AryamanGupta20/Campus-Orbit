@@ -19,5 +19,11 @@
       "database_id": "bb49cd4e-508f-44cb-bb8b-ffd1fa44c866",
       "migrations_dir": "migrations"
     }
+  ],
+  "services": [
+    {
+      "binding": "API",
+      "service": "campus-orbit-api"
+    }
   ]
 }

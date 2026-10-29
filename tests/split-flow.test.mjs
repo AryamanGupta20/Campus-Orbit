@@ -1,0 +1,36 @@
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import {adapter} from '../server/local.mjs';
+import frontend from '../worker/frontend.mjs';
+import backend from '../worker/backend.mjs';
+const sql=new DatabaseSync(':memory:');
+for(const f of readdirSync(new URL('../migrations/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sql.exec(readFileSync(new URL('../migrations/'+f,import.meta.url),'utf8'));
+const origin='https://campus.test';
+const env={DB:adapter(sql),PUBLIC_ORIGIN:origin,ADMIN_SETUP_TOKEN:'test-only-setup-token'};
+const front={API:{fetch:r=>backend.fetch(r,env)}};
+async function call(path,method='GET',data,cookie='',extra={}){
+ const r=await frontend.fetch(new Request(origin+'/api'+path,{method,headers:{Origin:origin,'X-Campus-Request':'1',Cookie:cookie,...extra,...(data&&!(data instanceof FormData)?{'Content-Type':'application/json'}:{})},...(data?{body:data instanceof FormData?data:JSON.stringify(data)}:{})}),front);
+ return {status:r.status,body:r.headers.get('Content-Type')?.includes('json')?await r.json():await r.text(),cookie:r.headers.get('Set-Cookie')?.split(';')[0]||cookie};
+}
+const signup=email=>call('/auth/signup','POST',{name:'Split test',email,password:'test-password-12345'});
+const a=await signup('a@example.test'),b=await signup('b@example.test');assert.equal(a.status,200);assert.equal(b.status,200);
+assert.equal((await call('/me','GET',null,a.cookie)).body.user.id,a.body.user.id);
+assert.equal((await call('/admin/students','GET',null,a.cookie)).status,403);
+assert.equal((await call('/state','PUT',{version:0,data:{profile:{name:'Saved'},budget:123}},a.cookie)).status,200);
+assert.equal((await call('/state','GET',null,a.cookie)).body.data.budget,123);
+assert.notEqual((await call('/state','GET',null,b.cookie)).body.data.budget,123);
+assert.equal((await call('/state','PUT',{version:1,data:{}},a.cookie,{Origin:'https://evil.test'})).status,403);
+const owner=await call('/auth/signup','POST',{name:'Owner',email:'aryamangupta55@gmail.com',password:'test-password-12345',adminCode:env.ADMIN_SETUP_TOKEN});assert.equal(owner.status,200);
+delete env.ADMIN_SETUP_TOKEN;
+assert.equal((await call('/auth/login','POST',{email:'aryamangupta55@gmail.com',password:'test-password-12345'})).body.user.role,'admin');
+const form=new FormData();form.set('category','Technical guidance');form.set('description','Please help me with this attachment.');form.set('timing','Flexible');form.append('files',new Blob(['private test file']),'test.txt');
+assert.equal((await call('/requests','POST',form,a.cookie)).status,201);
+const requests=(await call('/requests','GET',null,a.cookie)).body.requests;
+const id=requests[0].files[0].id;
+assert.equal((await call('/files/'+id,'GET',null,b.cookie)).status,404);
+assert.equal((await call('/files/'+id,'GET',null,a.cookie)).body,'private test file');
+assert.equal((await call('/auth/recover','POST',{email:'a@example.test',password:'new-test-password-12345',recoveryCode:a.body.recoveryCode})).status,200);
+assert.equal((await call('/state','GET',null,a.cookie)).status,401);
+assert.equal((await call('/health')).body.database,true);
+sql.close();console.log('PASS split API flow: signup, cookies, save isolation, CSRF, owner login without setup secret, files and recovery. Local database; not hosted runtime.');
