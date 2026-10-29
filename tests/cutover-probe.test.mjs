@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync,readdirSync} from 'node:fs';
+import {adapter} from '../server/local.mjs';
+import worker from '../worker/index.mjs';
+const sql=new DatabaseSync(':memory:');for(const f of readdirSync(new URL('../migrations/',import.meta.url)).filter(x=>x.endsWith('.sql')).sort())sql.exec(readFileSync(new URL('../migrations/'+f,import.meta.url),'utf8'));
+let calls=0;
+const env={DB:adapter(sql),ASSETS:{fetch:async()=>new Response('unchanged public page')},API:{fetch:async()=>{calls++;throw Error('new backend unavailable');}}};
+const call=(path,method='GET',data)=>worker.fetch(new Request('https://campus.test'+path,{method,headers:{Origin:'https://campus.test','X-Campus-Request':'1','Content-Type':'application/json'},...(data?{body:JSON.stringify(data)}:{})}),env);
+assert.equal(await (await call('/')).text(),'unchanged public page');
+assert.equal((await call('/api/health')).status,200);
+assert.equal((await call('/api/me')).status,200);
+assert.equal((await call('/api/auth/signup','POST',{name:'Isolation test',email:'probe@example.test',password:'local-test-password-123'})).status,200);
+assert.equal(calls,0,'Normal website and signup must not use the new backend yet');
+assert.equal((await call('/api/backend-health')).status,503);assert.equal(calls,1);
+assert.equal((await call('/api/health')).status,200);
+sql.close();console.log('PASS: a broken new API binding cannot affect existing pages, health, sessions or signup. Only the read-only probe calls it.');

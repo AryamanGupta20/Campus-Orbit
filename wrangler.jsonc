@@ -1,6 +1,6 @@
 {
   "name": "collexion-campus",
-  "main": "worker/index.mjs",
+  "main": "worker/frontend.mjs",
   "compatibility_date": "2026-10-05",
   "compatibility_flags": [
     "nodejs_compat"
@@ -12,14 +12,8 @@
       "/api/*"
     ]
   },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "collexion-campus",
-      "database_id": "bb49cd4e-508f-44cb-bb8b-ffd1fa44c866",
-      "migrations_dir": "migrations"
-    }
-  ],
+  "workers_dev": true,
+  "preview_urls": false,
   "services": [
     {
       "binding": "API",
