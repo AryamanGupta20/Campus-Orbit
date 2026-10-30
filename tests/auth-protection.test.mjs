@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import {createPasswordHash,verifyPassword,needsPasswordUpgrade} from '../server/passwords.mjs';
+import {verifyBot,botConfig} from '../server/bot-protection.mjs';
+const pass='long-test-password',salt='0123456789abcdef',pepper='test-only-secret-at-least-32-characters';
+const plain=await createPasswordHash(pass,salt),protectedHash=await createPasswordHash(pass,salt,pepper);
+for(const stored of [plain,plain.split('$')[3],protectedHash]){assert(await verifyPassword(pass,salt,stored,pepper));assert.equal(await verifyPassword('wrong-password',salt,stored,pepper),false);}
+assert.notEqual(plain.split('$')[3],protectedHash.split('$')[3]);assert(needsPasswordUpgrade(plain,pepper));assert(!needsPasswordUpgrade(protectedHash,pepper));
+await assert.rejects(()=>verifyPassword(pass,salt,protectedHash),e=>e.status===503);
+assert.equal(await verifyPassword(pass,salt,'pbkdf2-sha256$999999999$plain$'+'a'.repeat(64)),false);
+const request=new Request('https://campus.test/api/auth/login');
+const env={TURNSTILE_ENABLED:'true',TURNSTILE_SITE_KEY:'site',TURNSTILE_SECRET_KEY:'secret'};
+assert(!JSON.stringify(botConfig(env)).includes('secret'));
+const send=result=>async(url,init)=>{assert.equal(url,'https://challenges.cloudflare.com/turnstile/v0/siteverify');assert.equal(JSON.parse(init.body).secret,'secret');return Response.json(result);};
+const good={success:true,hostname:'campus.test',action:'login'};
+await verifyBot(request,env,'token','login',send(good));
+for(const token of ['',null,'x'.repeat(2049)])await assert.rejects(()=>verifyBot(request,env,token,'login'),e=>e.status===403);
+for(const result of [{...good,success:false},{...good,hostname:'evil.test'},{...good,action:'signup'}])await assert.rejects(()=>verifyBot(request,env,'token','login',send(result)),e=>e.status===403);
+await assert.rejects(()=>verifyBot(request,{...env,TURNSTILE_SECRET_KEY:''},'token','login'),e=>e.status===503);
+await assert.rejects(()=>verifyBot(request,env,'token','login',async()=>{throw Error();}),e=>e.status===503);
+console.log('PASS: versioned and legacy passwords, pepper, malformed hashes, bot validation, hostname/action checks and fail-closed errors');
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import {adapter} from '../server/local.mjs';
+import {handleApi} from '../server/api.mjs';
+const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../server/schema.sql',import.meta.url),'utf8'));
+const apiEnv={DB:adapter(sql)};
+async function call(path,data){return handleApi(new Request('https://campus.test/api/auth/'+path,{method:'POST',headers:{Origin:'https://campus.test','X-Campus-Request':'1','Content-Type':'application/json'},body:JSON.stringify(data)}),apiEnv);}
+const account={name:'Hash migration test',email:'hash@example.test',password:pass};
+assert.equal((await call('signup',account)).status,200);
+const initial=sql.prepare('SELECT * FROM users WHERE email=?').get(account.email);
+sql.prepare('UPDATE users SET password_hash=? WHERE id=?').run(initial.password_hash.split('$')[3],initial.id);
+apiEnv.PASSWORD_PEPPER=pepper;
+assert.equal((await call('login',{...account,password:'wrong-password'})).status,401);
+assert(/^[a-f0-9]{64}$/.test(sql.prepare('SELECT password_hash FROM users WHERE id=?').get(initial.id).password_hash));
+assert.equal((await call('login',account)).status,200);
+assert(sql.prepare('SELECT password_hash FROM users WHERE id=?').get(initial.id).password_hash.includes('$hmac-v1$'));
+assert.equal((await call('login',account)).status,200);
+Object.assign(apiEnv,env);
+for(const action of ['signup','login','recover'])assert.equal((await call(action,account)).status,403);
+assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM users').get().n,1);
+console.log('PASS: legacy login upgrades safely, wrong password cannot upgrade, all account entry routes require bot token when enabled');
+import vm from 'node:vm';
+function browserHarness(config){let opts,action='login';const nodes=[];const document={createElement(){const n={style:{},setAttribute(){},append(){},replaceChildren(){}};nodes.push(n);return n;}};const context={window:{turnstile:{render(el,o){opts=o;return 1;},remove(){}}},document,Campus:{api:async()=>config},setTimeout,clearTimeout};vm.runInNewContext(readFileSync(new URL('../public/auth-protection.js',import.meta.url),'utf8'),context);const controller=context.window.OrbitAuthProtection({querySelector(){return {before(){}};}},()=>action);return {controller,get options(){return opts;},setAction(value){action=value;controller.reset();}};}
+const off=browserHarness({enabled:false,siteKey:''});assert.equal(await off.controller.getToken(),'');
+const on=browserHarness({enabled:true,siteKey:'site'});await assert.rejects(()=>on.controller.getToken());assert.equal(on.options.action,'login');on.options.callback('verified');assert.equal(await on.controller.getToken(),'verified');on.setAction('signup');assert.equal(on.options.action,'signup');await assert.rejects(()=>on.controller.getToken());on.options.callback('new-token');on.options['expired-callback']();await assert.rejects(()=>on.controller.getToken());
+console.log('PASS: browser controller blocks pending/expired checks and clears tokens on form changes; mocked widget, not real Cloudflare challenge');
