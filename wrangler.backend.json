@@ -5,9 +5,6 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "workers_dev": false,
-  "preview_urls": false,
-  "routes": [],
   "d1_databases": [
     {
       "binding": "DB",
@@ -16,7 +13,12 @@
       "migrations_dir": "migrations"
     }
   ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
   "vars": {
-    "PUBLIC_ORIGIN": "https://collexion-campus.aryamangupta55.workers.dev"
+    "PUBLIC_ORIGIN": "https://collexion-campus.aryamangupta55.workers.dev",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFsu_rQ1fAb3F5oE",
+    "TURNSTILE_ENABLED": "true"
   }
 }
